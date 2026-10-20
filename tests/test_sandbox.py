@@ -1,6 +1,6 @@
 import pytest
 
-from mtl_analyst.sandbox import QueryBudget, QueryBudgetExceeded, SandboxRejected, SqlSandbox
+from mtl_analyst.sandbox import QueryBudget, QueryBudgetExceededError, SandboxRejectedError, SqlSandbox
 from mtl_analyst.scope import Scope
 
 PLATEAU = "Le Plateau-Mont-Royal"
@@ -27,7 +27,7 @@ def sandbox(con, scope=None, **budget):
     ],
 )
 def test_anything_but_a_catalog_select_is_rejected(con, sql):
-    with pytest.raises(SandboxRejected):
+    with pytest.raises(SandboxRejectedError):
         sandbox(con).rewrite(sql)
 
 
@@ -74,13 +74,13 @@ def test_query_count_budget(con):
     box = sandbox(con, max_queries=2)
     box.run("select 1")
     box.run("select 2")
-    with pytest.raises(QueryBudgetExceeded):
+    with pytest.raises(QueryBudgetExceededError):
         box.run("select 3")
 
 
 def test_timeout_budget(con):
     box = sandbox(con, timeout_s=0.05)
-    with pytest.raises(QueryBudgetExceeded):
+    with pytest.raises(QueryBudgetExceededError):
         box.run("select count(*) from trips a, trips b, trips c")
 
 

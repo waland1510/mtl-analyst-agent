@@ -1,4 +1,7 @@
-"""Rebuilds data/*.parquet from the BIXI yearly export. Run with the path to the unzipped CSV; the full file is 2.8 GB and is not checked in."""
+"""Rebuilds data/*.parquet from the BIXI yearly export.
+
+Run with the path to the unzipped CSV; the full file is 2.8 GB and is not checked in.
+"""
 
 from __future__ import annotations
 
@@ -37,11 +40,12 @@ def main(csv: str, out: Path) -> None:
     con.execute(
         f"""copy (select cast(started_at as date) as day, start_borough as borough, count(*) as trips,
             round(avg(duration_s)) as avg_duration_s, round(quantile_cont(duration_s, 0.5)) as median_duration_s
-            from trips group by 1,2 order by 1,2) to '{out / "daily_borough.parquet"}' (format parquet, compression zstd)"""
+            from trips group by 1,2 order by 1,2)
+            to '{out / "daily_borough.parquet"}' (format parquet, compression zstd)"""
     )
     con.execute(
-        f"""copy (select start_station as station, any_value(start_borough) as borough, round(any_value(start_lat),5) as lat,
-            round(any_value(start_lon),5) as lon, count(*) as departures_2025
+        f"""copy (select start_station as station, any_value(start_borough) as borough,
+            round(any_value(start_lat),5) as lat, round(any_value(start_lon),5) as lon, count(*) as departures_2025
             from trips group by 1 order by 1) to '{out / "stations.parquet"}' (format parquet, compression zstd)"""
     )
     print(con.execute("select count(*) from trips").fetchone())

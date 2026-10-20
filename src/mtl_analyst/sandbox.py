@@ -26,11 +26,11 @@ _FORBIDDEN_FUNCTIONS = {
 }
 
 
-class SandboxRejected(ValueError):
+class SandboxRejectedError(ValueError):
     pass
 
 
-class QueryBudgetExceeded(RuntimeError):
+class QueryBudgetExceededError(RuntimeError):
     pass
 
 
@@ -62,20 +62,20 @@ class SqlSandbox:
         try:
             statements = sqlglot.parse(sql, read="duckdb")
         except sqlglot.errors.ParseError as error:
-            raise SandboxRejected(f"SQL does not parse: {error}") from error
+            raise SandboxRejectedError(f"SQL does not parse: {error}") from error
         if len(statements) != 1 or statements[0] is None:
-            raise SandboxRejected("Exactly one statement is allowed.")
+            raise SandboxRejectedError("Exactly one statement is allowed.")
         tree = statements[0]
         if not isinstance(tree, exp.Select | exp.Union):
-            raise SandboxRejected(f"Only SELECT is allowed, not {type(tree).__name__}.")
+            raise SandboxRejectedError(f"Only SELECT is allowed, not {type(tree).__name__}.")
 
         for node in tree.walk():
             if isinstance(node, exp.Anonymous | exp.Func) and node.name.lower() in _FORBIDDEN_FUNCTIONS:
-                raise SandboxRejected(f"Function {node.name} is not allowed.")
+                raise SandboxRejectedError(f"Function {node.name} is not allowed.")
             if isinstance(
                 node, exp.Command | exp.Set | exp.Pragma | exp.Create | exp.Insert | exp.Update | exp.Delete | exp.Drop
             ):
-                raise SandboxRejected(f"{type(node).__name__} is not allowed.")
+                raise SandboxRejectedError(f"{type(node).__name__} is not allowed.")
 
         ctes = {cte.alias_or_name for cte in tree.find_all(exp.CTE)}
 
@@ -86,7 +86,7 @@ class SqlSandbox:
             if name in ctes:
                 return node
             if node.db or node.catalog or name not in TABLES:
-                raise SandboxRejected(f"Table {node.sql()} is not in the catalog.")
+                raise SandboxRejectedError(f"Table {node.sql()} is not in the catalog.")
             column = TABLES[name].scope_column
             if self.scope.borough is None or column is None:
                 return node
@@ -101,7 +101,7 @@ class SqlSandbox:
 
     def run(self, sql: str) -> QueryResult:
         if self.executed >= self.budget.max_queries:
-            raise QueryBudgetExceeded(f"Query budget exceeded: {self.budget.max_queries} queries per run.")
+            raise QueryBudgetExceededError(f"Query budget exceeded: {self.budget.max_queries} queries per run.")
         executed_sql = self.rewrite(sql)
         self.executed += 1
 
@@ -115,7 +115,7 @@ class SqlSandbox:
             rows = cursor.fetchmany(self.budget.max_rows + 1)
             columns = [d[0] for d in cursor.description or []]
         except duckdb.InterruptException as error:
-            raise QueryBudgetExceeded(f"Query exceeded {self.budget.timeout_s}s.") from error
+            raise QueryBudgetExceededError(f"Query exceeded {self.budget.timeout_s}s.") from error
         finally:
             timer.cancel()
         elapsed = (time.perf_counter() - started) * 1000

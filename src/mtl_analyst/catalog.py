@@ -1,4 +1,7 @@
-"""DuckDB over the checked-in parquet files. Every table the model may name is listed here; nothing else is reachable."""
+"""DuckDB over the checked-in parquet files.
+
+Every table the model may name is listed here; nothing else is reachable.
+"""
 
 from __future__ import annotations
 

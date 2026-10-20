@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-_BOROUGH = re.compile(r"^[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 \-—–]{0,80}$")
+_BOROUGH = re.compile(r"^[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 \-\u2014\u2013]{0,80}$")
 
 
 class ScopeError(ValueError):
