@@ -44,9 +44,9 @@ async def ask(args: argparse.Namespace) -> int:
     started = asyncio.get_event_loop().time()
 
     def show(e):
-        print(
-            f"  {(asyncio.get_event_loop().time() - started) * 1000:7.0f} ms  {e.kind:<6} {e.name:<14} {e.input_tokens + e.output_tokens or '':>6}  {e.detail or ''}"
-        )
+        elapsed = (asyncio.get_event_loop().time() - started) * 1000
+        tokens = e.input_tokens + e.output_tokens or ""
+        print(f"  {elapsed:7.0f} ms  {e.kind:<6} {e.name:<14} {tokens:>6}  {e.detail or ''}")
 
     orchestrator = Orchestrator(build_client(mode), RunStore(repo / "runs"), budget=budget_for(mode), observer=show)
     if args.approve or args.reject:
@@ -60,9 +60,8 @@ async def ask(args: argparse.Namespace) -> int:
         print(f"  {r.id}: {r.sql_requested}  → {len(r.rows)} rows")
     for a in run.approvals:
         if a.approved is None:
-            print(
-                f"  awaiting approval {a.id}: {a.tool} {a.arguments}\n  → python -m mtl_analyst ask --approve {run.id}/{a.id}"
-            )
+            print(f"  awaiting approval {a.id}: {a.tool} {a.arguments}")
+            print(f"  → python -m mtl_analyst ask --approve {run.id}/{a.id}")
     for s in run.kept:
         print(f"  {s}")
     for d in run.dropped:
