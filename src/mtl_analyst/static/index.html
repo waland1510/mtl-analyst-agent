@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mtl-analyst-agent</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vega/5.30.0/vega.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vega-lite/5.21.0/vega-lite.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vega-embed/6.26.0/vega-embed.min.js"></script>
+<style>
+  :root { --bg:#fafaf7; --fg:#1d1d1b; --muted:#6b6b66; --line:#e3e2dc; --accent:#2d5b9a; --ok:#2b7a4b; --warn:#a05a00; --bad:#a3322c; --card:#fff; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#161614; --fg:#ebebe6; --muted:#9a9a93; --line:#2e2e2a; --accent:#7fa7e0; --ok:#6cc08b; --warn:#e0a24a; --bad:#e07a74; --card:#1f1f1c; } }
+  * { box-sizing:border-box } body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 -apple-system,"Segoe UI",Roboto,sans-serif }
+  main { max-width:1080px; margin:0 auto; padding:24px 16px 64px }
+  h1 { font-size:20px; margin:0 0 4px } h1 small { color:var(--muted); font-weight:400; margin-left:8px } .sub { color:var(--muted); margin:0 0 20px }
+  form { display:grid; grid-template-columns:220px 1fr auto auto; gap:8px; align-items:center } @media (max-width:760px){ form,.grid{grid-template-columns:1fr} }
+  select,input,button,label.chk { font:inherit; padding:8px 10px; border:1px solid var(--line); border-radius:6px; background:var(--card); color:var(--fg) }
+  button { cursor:pointer } button.primary { background:var(--accent); color:#fff; border-color:var(--accent) }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 0 } .chips button { font-size:13px; padding:4px 8px }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:20px }
+  section { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px 16px; min-height:80px }
+  section h2 { font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin:0 0 10px }
+  .status { font-weight:600 } .Completed{color:var(--ok)} .AwaitingApproval{color:var(--warn)} .Failed,.Rejected{color:var(--bad)} .Running{color:var(--accent)}
+  table { width:100%; border-collapse:collapse; font-size:13px } td,th { padding:3px 6px 3px 0; text-align:left; vertical-align:top; border-top:1px solid var(--line) } td.k { color:var(--muted); white-space:nowrap } td.d { color:var(--muted); word-break:break-word }
+  pre { font-size:12px; white-space:pre-wrap; word-break:break-word; margin:4px 0; color:var(--muted) }
+  .kept { margin:4px 0 } .dropped { font-size:13px; color:var(--bad) } .approval { border:1px solid var(--warn); border-radius:6px; padding:10px; margin:8px 0 }
+  .history a { display:block; font-size:13px; padding:3px 0; color:var(--accent); text-decoration:none } .history a span { color:var(--muted) }
+  #chart { width:100% }
+</style>
+</head>
+<body>
+<main>
+  <h1>mtl-analyst-agent <small id="mode"></small></h1>
+  <p class="sub">The model writes SQL; the sandbox rewrites it with the scope and runs it; code checks every number in the answer against the rows.</p>
+  <form id="ask">
+    <select id="scope"><option value="city">City (all boroughs)</option></select>
+    <input id="question" placeholder="Ask about BIXI 2025…" required>
+    <label class="chk"><input type="checkbox" id="export"> allow export</label>
+    <button class="primary" type="submit">Run</button>
+  </form>
+  <div class="chips" id="chips"></div>
+  <div class="grid">
+    <section><h2>Run <span id="runid"></span></h2><div><span class="status" id="status">—</span> <span id="counters" class="d"></span></div><div id="approvals"></div><div id="error" class="dropped"></div></section>
+    <section><h2>Trajectory</h2><table id="events"></table></section>
+    <section style="grid-column:1/-1"><h2>Answer</h2><div id="kept"></div><div id="dropped"></div><div id="chart"></div></section>
+    <section style="grid-column:1/-1"><h2>SQL and rows</h2><div id="results"></div></section>
+    <section style="grid-column:1/-1" class="history"><h2>Recent runs</h2><div id="history"></div></section>
+  </div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const samples = ["Which borough was the busiest in 2025?", "How many trips per month were there?", "What is the median trip duration?", "Which stations have the most departures?", "How many trips were there in total? Then export the result."];
+let timer = null, current = null;
+async function init() {
+  const ready = await (await fetch('/health/ready')).json(); $('mode').textContent = ready.mode + ' mode';
+  for (const b of await (await fetch('/boroughs')).json()) { const o = document.createElement('option'); o.value = b; o.textContent = b; $('scope').append(o); }
+  for (const s of samples) { const b = document.createElement('button'); b.type = 'button'; b.textContent = s; b.onclick = () => { $('question').value = s; $('export').checked = s.includes('export'); }; $('chips').append(b); }
+  history();
+}
+$('ask').onsubmit = async e => {
+  e.preventDefault();
+  const res = await fetch(`/scopes/${encodeURIComponent($('scope').value)}/runs`, {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({question: $('question').value, allow_export: $('export').checked})});
+  if (!res.ok) { $('error').textContent = (await res.json()).detail || res.statusText; return; }
+  watch((await res.json()).id);
+};
+function watch(id) { current = id; clearInterval(timer); poll(); timer = setInterval(poll, 1000); }
+async function poll() {
+  const res = await fetch(`/runs/${current}`); if (!res.ok) return;
+  const {run, in_flight} = await res.json(); render(run);
+  if (!in_flight && run.status !== 'Running') { clearInterval(timer); history(); }
+}
+function render(run) {
+  $('runid').textContent = run.id; $('status').textContent = run.status; $('status').className = 'status ' + run.status;
+  const model = run.events.filter(e => e.kind === 'model').length, tools = run.events.filter(e => e.kind === 'tool').length, tokens = run.events.reduce((n, e) => n + e.input_tokens + e.output_tokens, 0);
+  $('counters').textContent = `${model} model calls · ${tools} tool calls · ${tokens} tokens`; $('error').textContent = run.error || '';
+  $('approvals').innerHTML = run.approvals.filter(a => a.approved === null).map(a => `<div class="approval"><b>Approval needed:</b> ${a.tool} <pre>${esc(JSON.stringify(a.arguments))}</pre><button onclick="decide('${a.id}', true)">Approve</button> <button onclick="decide('${a.id}', false)">Reject</button></div>`).join('');
+  $('events').innerHTML = run.events.map(e => `<tr><td class="k">${e.kind}</td><td>${esc(e.name)}</td><td class="k">${e.input_tokens + e.output_tokens ? (e.input_tokens + e.output_tokens) + ' tok' : ''}</td><td class="d">${esc((e.detail || '').slice(0, 200))}</td></tr>`).join('');
+  $('kept').innerHTML = run.kept.map(s => `<div class="kept">${esc(s)}</div>`).join('') || (run.status === 'AwaitingApproval' ? '<div class="d">Paused: a decision is needed above.</div>' : '');
+  $('dropped').innerHTML = run.dropped.map(d => `<div class="dropped">dropped: ${esc(d.sentence)} — ${esc(d.reason)}</div>`).join('') + (run.chart_error ? `<div class="dropped">chart rejected: ${esc(run.chart_error)}</div>` : '');
+  if (run.chart) { vegaEmbed('#chart', run.chart, {actions: false}); } else { $('chart').innerHTML = ''; }
+  $('results').innerHTML = run.results.map(r => `<div><b>${r.id}</b> <pre>${esc(r.sql_requested)}</pre><pre>executed: ${esc(r.sql_executed)}</pre><table><tr>${r.columns.map(c => `<th>${esc(c)}</th>`).join('')}</tr>${r.rows.slice(0, 12).map(row => `<tr>${row.map(v => `<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</table>${r.rows.length > 12 ? `<div class="d">… ${r.rows.length} rows</div>` : ''}</div>`).join('');
+}
+async function decide(id, approved) { await fetch(`/runs/${current}/approvals/${id}`, {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({approved, decided_by: 'browser'})}); watch(current); }
+async function history() { const runs = await (await fetch('/runs')).json(); $('history').innerHTML = runs.map(r => `<a href="#" onclick="watch('${r.id}');return false">${esc(r.question)} <span>· ${r.borough || 'city'} · ${r.status}</span></a>`).join('') || '<span class="d">none yet</span>'; }
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+init();
+</script>
+</body>
+</html>

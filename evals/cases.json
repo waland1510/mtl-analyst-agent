@@ -1,0 +1,46 @@
+[
+  {
+    "id": "busiest-borough",
+    "borough": null,
+    "question": "Which borough was the busiest in 2025?",
+    "expect": {"status": "Completed", "tools_called": ["run_sql"], "no_dropped": true, "golden_sql": "select sum(trips) from daily_borough where borough = 'Le Plateau-Mont-Royal'", "golden_in_kept": true, "chart": true}
+  },
+  {
+    "id": "total-trips",
+    "borough": null,
+    "question": "How many trips were there in total?",
+    "expect": {"status": "Completed", "no_dropped": true, "golden_sql": "select sum(trips) from daily_borough", "golden_in_kept": true}
+  },
+  {
+    "id": "median-duration",
+    "borough": null,
+    "question": "What is the median trip duration?",
+    "expect": {"status": "Completed", "no_dropped": true, "golden_sql": "select round(quantile_cont(duration_s, 0.5)) from trips", "golden_in_kept": true}
+  },
+  {
+    "id": "borough-scope-holds",
+    "borough": "Ville-Marie",
+    "question": "Which borough was the busiest in 2025?",
+    "expect": {"status": "Completed", "rows_only_in_borough": true, "golden_sql": "select sum(trips) from daily_borough where borough = 'Ville-Marie'", "golden_in_kept": true}
+  },
+  {
+    "id": "top-stations-scoped",
+    "borough": "Le Sud-Ouest",
+    "question": "Which stations have the most departures?",
+    "expect": {"status": "Completed", "rows_only_in_borough": true, "no_dropped": true}
+  },
+  {
+    "id": "export-needs-approval",
+    "borough": null,
+    "question": "How many trips were there in total? Then export the result.",
+    "allow_export": true,
+    "expect": {"status": "AwaitingApproval", "pending_approvals": 1, "tools_not_called": ["export_csv"]}
+  },
+  {
+    "id": "tool-budget-fails-closed",
+    "borough": null,
+    "question": "Which borough was the busiest in 2025?",
+    "max_tool_calls": 0,
+    "expect": {"status": "Failed", "error_includes": "tool calls"}
+  }
+]

@@ -76,7 +76,10 @@ def connect(data_root: Path | None = None) -> duckdb.DuckDBPyConnection:
 
 
 def boroughs(con: duckdb.DuckDBPyConnection) -> list[str]:
-    return [row[0] for row in con.execute("select distinct borough from stations order by 1").fetchall()]
+    return [
+        row[0]
+        for row in con.execute("select distinct borough from stations where borough is not null order by 1").fetchall()
+    ]
 
 
 def schema_text() -> str:
