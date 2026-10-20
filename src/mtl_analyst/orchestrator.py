@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import dataclasses
 import json
+import re
 import time
 import uuid
 from pathlib import Path
@@ -162,12 +163,24 @@ class Orchestrator:
 
             deadline = time.monotonic() + self.budget.max_seconds
             response = await agent.run(messages, session=session, options={"response_format": Answer})
-            if trace.violation:
-                raise trace.violation
-            if time.monotonic() > deadline:
-                raise BudgetExceededError("seconds", int(self.budget.max_seconds))
-
-            self._store_results(run, toolbox)
+            for _attempt in range(2):
+                if trace.violation:
+                    raise trace.violation
+                if time.monotonic() > deadline:
+                    raise BudgetExceededError("seconds", int(self.budget.max_seconds))
+                self._store_results(run, toolbox)
+                if response.user_input_requests:
+                    break
+                answer = self._parse_answer(response)
+                if not self._export_expected_but_not_called(run, answer, trace):
+                    break
+                trace.record("critic", "action", detail="export expected but export_csv never called; sent back once")
+                response = await agent.run(
+                    "The user asked for an export and you did not call export_csv. Call it now with the result id "
+                    "to export, then answer again. If nothing should be exported, say so explicitly.",
+                    session=session,
+                    options={"response_format": Answer},
+                )
             requests = response.user_input_requests
             if requests:
                 for request in requests:
@@ -207,6 +220,15 @@ class Orchestrator:
             return self._persist(run, trace, baseline)
 
     @staticmethod
+    def _export_expected_but_not_called(run: AnalystRun, answer: Answer, trace: RunTrace) -> bool:
+        """A promise is not an action, and neither is silence: an export the user asked for must become a tool call."""
+        if not run.allow_export:
+            return False
+        expected = re.search(r"\b(export|download)", run.question + " " + answer.text, re.IGNORECASE) is not None
+        called = any(e.kind == "tool" and e.name == "export_csv" for e in trace.events)
+        return expected and not called and not any(a.tool == "export_csv" for a in run.approvals)
+
+    @staticmethod
     def _store_results(run: AnalystRun, toolbox: AnalystToolbox) -> None:
         run.results = [ResultRecord(**dataclasses.asdict(r)) for r in toolbox.results]
 
@@ -229,8 +251,6 @@ class Orchestrator:
 
 
 def _numbers_in(text: str) -> set[str]:
-    import re
-
     return set(re.findall(r"\d+", text))
 
 

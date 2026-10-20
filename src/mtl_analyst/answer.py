@@ -108,6 +108,8 @@ def verify(answer: Answer, results: list[StoredResult], allowed_free_numbers: se
     into a cited query (a LIMIT or a filter is a choice, not a claim about the data).
     """
     allowed = {"2025"} | {_normalize(n) for n in (allowed_free_numbers or set())}
+    for result in results:
+        allowed |= {_normalize(m.group(0)) for m in _NUMBER.finditer(result.sql_requested)}
     by_id = {r.id: r for r in results}
     kept: list[Sentence] = []
     dropped: list[tuple[Sentence, str]] = []
@@ -122,7 +124,6 @@ def verify(answer: Answer, results: list[StoredResult], allowed_free_numbers: se
             continue
         forms: set[str] = set()
         for result in cited:
-            forms |= {_normalize(m.group(0)) for m in _NUMBER.finditer(result.sql_requested)}
             for row in result.rows:
                 for cell in row:
                     forms |= _cell_forms(cell)

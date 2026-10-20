@@ -1,8 +1,8 @@
 {
   "mode": "azure",
   "model": "gpt-5-mini",
-  "passed": 6,
-  "failed": 1,
+  "passed": 7,
+  "failed": 0,
   "cases": [
     {
       "id": "busiest-borough",
@@ -10,8 +10,8 @@
       "status": "Completed",
       "model_calls": 3,
       "tool_calls": 2,
-      "tokens": 2720,
-      "ms": 11528,
+      "tokens": 3500,
+      "ms": 18605,
       "checks": [
         {
           "name": "status",
@@ -31,7 +31,7 @@
         {
           "name": "golden-in-kept",
           "passed": true,
-          "detail": "golden 4643362; kept: Le Plateau-Mont-Royal was the busiest borough in 2025 with 4,643,362 trips [R1]."
+          "detail": "golden 4643362; kept: Le Plateau-Mont-Royal was the busiest borough in 2025 with 4,643,362 trips [R1]. The second busiest was Ville-Marie with 3,521,715 trips, followed by Rosemont -"
         },
         {
           "name": "chart",
@@ -46,8 +46,8 @@
       "status": "Completed",
       "model_calls": 3,
       "tool_calls": 2,
-      "tokens": 2327,
-      "ms": 5943,
+      "tokens": 2392,
+      "ms": 7359,
       "checks": [
         {
           "name": "status",
@@ -62,7 +62,7 @@
         {
           "name": "golden-in-kept",
           "passed": true,
-          "detail": "golden 14193509; kept: The total number of trips in 2025 was 14,193,509 [R1]."
+          "detail": "golden 14193509; kept: Total completed BIXI trips in 2025 were 14,193,509 [R1]."
         }
       ]
     },
@@ -72,8 +72,8 @@
       "status": "Completed",
       "model_calls": 3,
       "tool_calls": 2,
-      "tokens": 3594,
-      "ms": 14201,
+      "tokens": 3072,
+      "ms": 13509,
       "checks": [
         {
           "name": "status",
@@ -88,7 +88,7 @@
         {
           "name": "golden-in-kept",
           "passed": true,
-          "detail": "golden 631; kept: The median trip duration is 631 seconds [R1]."
+          "detail": "golden 631; kept: Median trip duration in the trips sample is 631.0 seconds (10.516666666666667 minutes) [R1]."
         }
       ]
     },
@@ -98,8 +98,8 @@
       "status": "Completed",
       "model_calls": 3,
       "tool_calls": 2,
-      "tokens": 2769,
-      "ms": 9384,
+      "tokens": 3193,
+      "ms": 13883,
       "checks": [
         {
           "name": "status",
@@ -114,7 +114,7 @@
         {
           "name": "golden-in-kept",
           "passed": true,
-          "detail": "golden 3521715; kept: Ville-Marie was the busiest borough in 2025 with 3,521,715 trips [R1]."
+          "detail": "golden 3521715; kept: Ville-Marie was the busiest borough in 2025, with 3,521,715 trips [R1]. Totals come from the daily_borough table aggregated over the year."
         }
       ]
     },
@@ -124,8 +124,8 @@
       "status": "Completed",
       "model_calls": 3,
       "tool_calls": 2,
-      "tokens": 4677,
-      "ms": 19305,
+      "tokens": 3468,
+      "ms": 13966,
       "checks": [
         {
           "name": "status",
@@ -146,17 +146,17 @@
     },
     {
       "id": "export-needs-approval",
-      "passed": false,
-      "status": "Completed",
-      "model_calls": 3,
+      "passed": true,
+      "status": "AwaitingApproval",
+      "model_calls": 4,
       "tool_calls": 2,
-      "tokens": 2746,
-      "ms": 8119,
+      "tokens": 4273,
+      "ms": 14946,
       "checks": [
         {
           "name": "status",
-          "passed": false,
-          "detail": "expected AwaitingApproval, got Completed"
+          "passed": true,
+          "detail": "expected AwaitingApproval, got AwaitingApproval"
         },
         {
           "name": "tool-not-called:export_csv",
@@ -165,8 +165,8 @@
         },
         {
           "name": "pending-approvals",
-          "passed": false,
-          "detail": "got 0"
+          "passed": true,
+          "detail": "got 1"
         }
       ]
     },
@@ -176,8 +176,8 @@
       "status": "Failed",
       "model_calls": 4,
       "tool_calls": 0,
-      "tokens": 3097,
-      "ms": 10333,
+      "tokens": 2625,
+      "ms": 8342,
       "checks": [
         {
           "name": "status",

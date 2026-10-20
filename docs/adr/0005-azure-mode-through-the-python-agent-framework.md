@@ -29,6 +29,12 @@ next to the fake-mode `latest.md`, and both are committed.
   was its own `LIMIT`, not a value in the rows. Numbers the model wrote
   into a cited query are now free, because a LIMIT or a filter is a
   choice, not a claim about the data. The unit test pins it.
+- The model once answered "I will export the result as requested" and
+  stopped, and once simply ignored the export the user asked for. Neither
+  is a prompt problem to solve with more prompt: the orchestrator now
+  sends the agent back once, on the same session, when the question or
+  the answer mentions an export and no `export_csv` call happened. A
+  scripted fake reproduces the promise-without-action case in the tests.
 - The real model calls `describe_tables` first every time, writes correct
   aggregate SQL against `daily_borough` for exact questions and against
   the sample for the median, and respects the borough scope without being

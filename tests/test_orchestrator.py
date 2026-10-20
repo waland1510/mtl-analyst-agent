@@ -124,3 +124,16 @@ async def test_without_export_permission_the_tool_does_not_exist(tmp_path):
 
     assert run.status == "Completed"
     assert not any(e.name == "export_csv" for e in run.events)
+
+
+async def test_a_promised_export_without_a_call_is_sent_back_once(tmp_path):
+    exporter = Exporter()
+    client = ScriptedChatClient(export=True, promise_first=True)
+
+    run = await make(tmp_path, client, exporter=exporter).start(
+        Scope(), "total trips, then export it", allow_export=True
+    )
+
+    assert run.status == "AwaitingApproval"
+    assert any(e.kind == "critic" and e.name == "action" for e in run.events)
+    assert exporter.exported == []

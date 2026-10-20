@@ -11,7 +11,7 @@
       "model_calls": 2,
       "tool_calls": 1,
       "tokens": 78,
-      "ms": 75,
+      "ms": 116,
       "checks": [
         {
           "name": "status",
@@ -47,7 +47,7 @@
       "model_calls": 2,
       "tool_calls": 1,
       "tokens": 54,
-      "ms": 15,
+      "ms": 10,
       "checks": [
         {
           "name": "status",
@@ -73,7 +73,7 @@
       "model_calls": 2,
       "tool_calls": 1,
       "tokens": 62,
-      "ms": 25,
+      "ms": 13,
       "checks": [
         {
           "name": "status",
@@ -99,7 +99,7 @@
       "model_calls": 2,
       "tool_calls": 1,
       "tokens": 61,
-      "ms": 18,
+      "ms": 206,
       "checks": [
         {
           "name": "status",
@@ -125,7 +125,7 @@
       "model_calls": 2,
       "tool_calls": 1,
       "tokens": 82,
-      "ms": 22,
+      "ms": 10,
       "checks": [
         {
           "name": "status",
@@ -151,7 +151,7 @@
       "model_calls": 2,
       "tool_calls": 1,
       "tokens": 44,
-      "ms": 22,
+      "ms": 32,
       "checks": [
         {
           "name": "status",
@@ -177,7 +177,7 @@
       "model_calls": 4,
       "tool_calls": 0,
       "tokens": 68,
-      "ms": 20,
+      "ms": 22,
       "checks": [
         {
           "name": "status",

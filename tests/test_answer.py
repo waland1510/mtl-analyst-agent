@@ -63,6 +63,8 @@ def test_numbers_the_model_wrote_into_the_cited_sql_are_free():
     limited = StoredResult(
         "R3", "select station from stations order by departures_2025 desc limit 10", "", ["station"], [["A"]], False
     )
-    verdict = verify(Answer(text="The top 10 stations are listed [R3].", result_ids=["R3"]), [limited])
+    verdict = verify(
+        Answer(text="Top 10 stations by departures. The top 10 are listed [R3].", result_ids=["R3"]), [limited]
+    )
 
     assert verdict.passed

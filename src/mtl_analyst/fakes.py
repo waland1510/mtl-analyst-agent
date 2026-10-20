@@ -52,12 +52,20 @@ Script = Callable[[str, list[dict[str, Any]]], str | None]
 
 class ScriptedChatClient(FunctionInvocationLayer, ChatMiddlewareLayer, BaseChatClient):
     def __init__(
-        self, *, final_json: Script | None = None, sql_override: str | None = None, export: bool = False, **kwargs: Any
+        self,
+        *,
+        final_json: Script | None = None,
+        sql_override: str | None = None,
+        export: bool = False,
+        promise_first: bool = False,
+        **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
         self.final_json = final_json
         self.sql_override = sql_override
         self.export = export
+        self.promise_first = promise_first
+        self._promised = False
 
     async def _inner_get_response(
         self, *, messages: Sequence[Message], stream: bool, options: dict[str, Any], **kwargs: Any
@@ -78,6 +86,16 @@ class ScriptedChatClient(FunctionInvocationLayer, ChatMiddlewareLayer, BaseChatC
         wants_export = self.export or "export" in question.lower()
         if wants_export and "export_csv" in tools and not export_attempted:
             first = next(r["result_id"] for r in results if r.get("result_id"))
+            if self.promise_first and not self._promised:
+                self._promised = True
+                promise = json.dumps(
+                    {
+                        "text": f"The first row is {results[0]['rows'][0]} [{first}]. I will export the result as requested.",
+                        "result_ids": [first],
+                        "chart": None,
+                    }
+                )
+                return self._response(Message("assistant", [Content.from_text(promise)]), messages, "stop")
             reply = Message(
                 "assistant",
                 [
