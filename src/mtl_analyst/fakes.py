@@ -90,7 +90,7 @@ class ScriptedChatClient(FunctionInvocationLayer, ChatMiddlewareLayer, BaseChatC
                 self._promised = True
                 promise = json.dumps(
                     {
-                        "text": f"The first row is {results[0]['rows'][0]} [{first}]. I will export the result as requested.",
+                        text = f"The first row is {row} [{first}]. " + "I will export the result as requested."
                         "result_ids": [first],
                         "chart": None,
                     }
