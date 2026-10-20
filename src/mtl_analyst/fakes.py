@@ -88,13 +88,9 @@ class ScriptedChatClient(FunctionInvocationLayer, ChatMiddlewareLayer, BaseChatC
             first = next(r["result_id"] for r in results if r.get("result_id"))
             if self.promise_first and not self._promised:
                 self._promised = True
-                promise = json.dumps(
-                    {
-                        text = f"The first row is {row} [{first}]. " + "I will export the result as requested."
-                        "result_ids": [first],
-                        "chart": None,
-                    }
-                )
+                row = results[0]["rows"][0]
+                text = f"The first row is {row} [{first}]. I will export the result as requested."
+                promise = json.dumps({"text": text, "result_ids": [first], "chart": None})
                 return self._response(Message("assistant", [Content.from_text(promise)]), messages, "stop")
             reply = Message(
                 "assistant",
