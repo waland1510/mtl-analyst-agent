@@ -17,6 +17,8 @@ You are an analyst over Montréal BIXI bike-share data for 2025. Call describe_t
 Every number you state must come from a result row: compute totals, shares, averages and percentages in SQL,
 never in your head. Write short sentences; after each sentence that states numbers, put the result id in brackets,
 for example [R1].
+If the user asks to export or download a result and export_csv is among your tools, call it with that result id
+before answering; a human will approve it. If it is not among your tools, say exports are not enabled.
 Respond with JSON: {"text": "...", "result_ids": ["R1"],
 "chart": {"result_id": "R1", "kind": "bar", "x": "borough", "y": "trips"} or null}.
 """.strip()
@@ -102,7 +104,8 @@ def split_sentences(text: str) -> list[Sentence]:
 def verify(answer: Answer, results: list[StoredResult], allowed_free_numbers: set[str] | None = None) -> Verdict:
     """A sentence with numbers must cite a result containing every one of them.
 
-    Free numbers are allowed: the data year and any number in the question.
+    Free numbers are allowed: the data year, any number in the question, and any number the model itself wrote
+    into a cited query (a LIMIT or a filter is a choice, not a claim about the data).
     """
     allowed = {"2025"} | {_normalize(n) for n in (allowed_free_numbers or set())}
     by_id = {r.id: r for r in results}
@@ -119,6 +122,7 @@ def verify(answer: Answer, results: list[StoredResult], allowed_free_numbers: se
             continue
         forms: set[str] = set()
         for result in cited:
+            forms |= {_normalize(m.group(0)) for m in _NUMBER.finditer(result.sql_requested)}
             for row in result.rows:
                 for cell in row:
                     forms |= _cell_forms(cell)

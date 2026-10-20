@@ -13,8 +13,11 @@ Sibling of [condo-agents](https://github.com/waland1510/condo-agents)
 (.NET, retrieval over documents). Same posture, different question: there
 the model drives control flow; here it writes code.
 
-Status: steps 1 to 6 and 8 of the [plan](docs/plan.md) are done on the
-scripted fake; Azure mode (step 7) is next.
+Status: steps 1 to 8 of the [plan](docs/plan.md) are done. The same seven
+eval cases run on the scripted fake in CI and against Foundry `gpt-5-mini`
+([ADR 5](docs/adr/0005-azure-mode-through-the-python-agent-framework.md));
+both result files are committed. The optional LangGraph adapter (step 9)
+is not started.
 
 ```mermaid
 flowchart LR
@@ -40,6 +43,10 @@ python -m mtl_analyst evals                 # 7 cases, writes evals/results/late
 python -m mtl_analyst ask "Which borough was the busiest in 2025?"
 python -m mtl_analyst ask --borough "Ville-Marie" "Which borough was the busiest?"   # sees only itself
 python -m mtl_analyst serve                 # http://127.0.0.1:8000 — ask, watch SQL and rows, approve
+
+# Azure mode: the same commands with
+export MTL_MODE=azure MTL_FOUNDRY_ENDPOINT=https://<account>.services.ai.azure.com \
+       MTL_CHAT_DEPLOYMENT=gpt-5-mini MTL_AZURE_CLI_SUBSCRIPTION="<subscription in the owning tenant>"
 ```
 
 ## Reading guide
@@ -57,9 +64,10 @@ python -m mtl_analyst serve                 # http://127.0.0.1:8000 — ask, wat
    and why a rejected statement ends the run instead of being retried.
 4. [orchestrator.py](src/mtl_analyst/orchestrator.py): one agent, the
    critic, the chart, the approval pause and the file-backed run.
-5. [evals/results/latest.md](evals/results/latest.md): cases graded on
-   status, tools, scope leakage and whether the golden SQL's value appears
-   in a kept sentence.
+5. [evals/results/latest.md](evals/results/latest.md) and
+   [evals/results/azure-20261020.md](evals/results/azure-20261020.md):
+   cases graded on status, tools, scope leakage and whether the golden
+   SQL's value appears in a kept sentence, on the fake and on `gpt-5-mini`.
 6. [catalog.py](src/mtl_analyst/catalog.py): the only three tables the model
    can name, and the text it is told about them.
 7. [data/README.md](data/README.md): where the data comes from and how the

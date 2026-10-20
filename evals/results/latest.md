@@ -4,13 +4,13 @@
 
 | Case | Result | Status | Model calls | Tool calls | Tokens | ms |
 |---|---|---|---:|---:|---:|---:|
-| busiest-borough | pass | Completed | 2 | 1 | 78 | 46 |
-| total-trips | pass | Completed | 2 | 1 | 54 | 5 |
-| median-duration | pass | Completed | 2 | 1 | 62 | 8 |
-| borough-scope-holds | pass | Completed | 2 | 1 | 61 | 16 |
-| top-stations-scoped | pass | Completed | 2 | 1 | 82 | 6 |
-| export-needs-approval | pass | AwaitingApproval | 2 | 1 | 44 | 6 |
-| tool-budget-fails-closed | pass | Failed | 4 | 0 | 68 | 17 |
+| busiest-borough | pass | Completed | 2 | 1 | 78 | 75 |
+| total-trips | pass | Completed | 2 | 1 | 54 | 15 |
+| median-duration | pass | Completed | 2 | 1 | 62 | 25 |
+| borough-scope-holds | pass | Completed | 2 | 1 | 61 | 18 |
+| top-stations-scoped | pass | Completed | 2 | 1 | 82 | 22 |
+| export-needs-approval | pass | AwaitingApproval | 2 | 1 | 44 | 22 |
+| tool-budget-fails-closed | pass | Failed | 4 | 0 | 68 | 20 |
 
 ## busiest-borough
 

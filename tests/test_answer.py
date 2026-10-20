@@ -57,3 +57,12 @@ def test_sentences_split_on_terminal_punctuation_only():
 
     assert [s.result_ids for s in sentences] == [("R1",), ("R2",)]
     assert sentences[1].numbers == ("12.5",)
+
+
+def test_numbers_the_model_wrote_into_the_cited_sql_are_free():
+    limited = StoredResult(
+        "R3", "select station from stations order by departures_2025 desc limit 10", "", ["station"], [["A"]], False
+    )
+    verdict = verify(Answer(text="The top 10 stations are listed [R3].", result_ids=["R3"]), [limited])
+
+    assert verdict.passed

@@ -1,0 +1,195 @@
+{
+  "mode": "azure",
+  "model": "gpt-5-mini",
+  "passed": 6,
+  "failed": 1,
+  "cases": [
+    {
+      "id": "busiest-borough",
+      "passed": true,
+      "status": "Completed",
+      "model_calls": 3,
+      "tool_calls": 2,
+      "tokens": 2720,
+      "ms": 11528,
+      "checks": [
+        {
+          "name": "status",
+          "passed": true,
+          "detail": "expected Completed, got Completed"
+        },
+        {
+          "name": "tool-called:run_sql",
+          "passed": true,
+          "detail": "called ['describe_tables', 'run_sql']"
+        },
+        {
+          "name": "no-dropped",
+          "passed": true,
+          "detail": "all sentences verified"
+        },
+        {
+          "name": "golden-in-kept",
+          "passed": true,
+          "detail": "golden 4643362; kept: Le Plateau-Mont-Royal was the busiest borough in 2025 with 4,643,362 trips [R1]."
+        },
+        {
+          "name": "chart",
+          "passed": true,
+          "detail": "chart built"
+        }
+      ]
+    },
+    {
+      "id": "total-trips",
+      "passed": true,
+      "status": "Completed",
+      "model_calls": 3,
+      "tool_calls": 2,
+      "tokens": 2327,
+      "ms": 5943,
+      "checks": [
+        {
+          "name": "status",
+          "passed": true,
+          "detail": "expected Completed, got Completed"
+        },
+        {
+          "name": "no-dropped",
+          "passed": true,
+          "detail": "all sentences verified"
+        },
+        {
+          "name": "golden-in-kept",
+          "passed": true,
+          "detail": "golden 14193509; kept: The total number of trips in 2025 was 14,193,509 [R1]."
+        }
+      ]
+    },
+    {
+      "id": "median-duration",
+      "passed": true,
+      "status": "Completed",
+      "model_calls": 3,
+      "tool_calls": 2,
+      "tokens": 3594,
+      "ms": 14201,
+      "checks": [
+        {
+          "name": "status",
+          "passed": true,
+          "detail": "expected Completed, got Completed"
+        },
+        {
+          "name": "no-dropped",
+          "passed": true,
+          "detail": "all sentences verified"
+        },
+        {
+          "name": "golden-in-kept",
+          "passed": true,
+          "detail": "golden 631; kept: The median trip duration is 631 seconds [R1]."
+        }
+      ]
+    },
+    {
+      "id": "borough-scope-holds",
+      "passed": true,
+      "status": "Completed",
+      "model_calls": 3,
+      "tool_calls": 2,
+      "tokens": 2769,
+      "ms": 9384,
+      "checks": [
+        {
+          "name": "status",
+          "passed": true,
+          "detail": "expected Completed, got Completed"
+        },
+        {
+          "name": "rows-only-in-borough",
+          "passed": true,
+          "detail": "no other borough in any row"
+        },
+        {
+          "name": "golden-in-kept",
+          "passed": true,
+          "detail": "golden 3521715; kept: Ville-Marie was the busiest borough in 2025 with 3,521,715 trips [R1]."
+        }
+      ]
+    },
+    {
+      "id": "top-stations-scoped",
+      "passed": true,
+      "status": "Completed",
+      "model_calls": 3,
+      "tool_calls": 2,
+      "tokens": 4677,
+      "ms": 19305,
+      "checks": [
+        {
+          "name": "status",
+          "passed": true,
+          "detail": "expected Completed, got Completed"
+        },
+        {
+          "name": "no-dropped",
+          "passed": true,
+          "detail": "all sentences verified"
+        },
+        {
+          "name": "rows-only-in-borough",
+          "passed": true,
+          "detail": "no other borough in any row"
+        }
+      ]
+    },
+    {
+      "id": "export-needs-approval",
+      "passed": false,
+      "status": "Completed",
+      "model_calls": 3,
+      "tool_calls": 2,
+      "tokens": 2746,
+      "ms": 8119,
+      "checks": [
+        {
+          "name": "status",
+          "passed": false,
+          "detail": "expected AwaitingApproval, got Completed"
+        },
+        {
+          "name": "tool-not-called:export_csv",
+          "passed": true,
+          "detail": "called ['describe_tables', 'run_sql']"
+        },
+        {
+          "name": "pending-approvals",
+          "passed": false,
+          "detail": "got 0"
+        }
+      ]
+    },
+    {
+      "id": "tool-budget-fails-closed",
+      "passed": true,
+      "status": "Failed",
+      "model_calls": 4,
+      "tool_calls": 0,
+      "tokens": 3097,
+      "ms": 10333,
+      "checks": [
+        {
+          "name": "status",
+          "passed": true,
+          "detail": "expected Failed, got Failed"
+        },
+        {
+          "name": "error",
+          "passed": true,
+          "detail": "Run budget exceeded: tool calls > 0."
+        }
+      ]
+    }
+  ]
+}
